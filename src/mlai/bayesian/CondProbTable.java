@@ -76,9 +76,18 @@ public class CondProbTable {
 		// Estimate the probability of each possible combination.
 		for (int classValIndex = 0; classValIndex < classNode.getNumValues(); classValIndex++) {
 			NodeValue thisClassVal = classNode.getValueByIndex(classValIndex);
-			thisClassVal.setProbability((thisClassVal.getNumExamples() + 1)
-					/ (double) (net.getNumExamples() + net.getClassNode()
-							.getNumValues()));
+			
+			int numerator = thisClassVal.getNumExamples();
+			int denominator = net.getNumExamples();
+			
+			// See if Laplace estimates are in use and adjust counts
+			// accordingly.
+			if (net.getLearnerType().endsWith("l")) {
+				numerator += 1;
+				denominator += net.getClassNode().getNumValues();
+			}
+			
+			thisClassVal.setProbability(numerator / (double) denominator);
 
 			for (int parentValIndex = 0; parentValIndex < parentNode
 					.getNumValues(); parentValIndex++) {
@@ -102,10 +111,19 @@ public class CondProbTable {
 							}
 						}
 					}
+					
+					numerator = count;
+					denominator = givenCount;
+					
+					// See if Laplace estimates are in use and adjust counts
+					// accordingly.
+					if (net.getLearnerType().endsWith("l")) {
+						numerator += 1;
+						denominator += attribute.getNumValues();
+					}
 
 					// Calculate conditional probability given parent and class.
-					double probability = ((count + 1) / (double) (givenCount + attribute
-							.getNumValues()));
+					double probability = (numerator / (double) denominator);
 					probabilities[attValIndex][parentValIndex][classValIndex] = probability;
 				}
 			}

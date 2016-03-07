@@ -21,9 +21,10 @@ public class BayesNet {
 	/**
 	 * Constructor method for the Bayes Net.
 	 * @param trainFile  The name of the ARFF file containing the training examples.
-	 * @param type  'n' for Naive Bayes, or 't' for TAN.
+	 * @param type  'n' for Naive Bayes, or 't' for TAN, with optional 'l' added
+	 *              to indicate that Laplace estimates should be used.
 	 */
-	public BayesNet(String trainFile, String type) {
+	public BayesNet(String trainFile, String learnerType) {
 		// Initialize variables.
 		relation = null;
 		// Temporarily set the class node's index to -1.
@@ -31,6 +32,7 @@ public class BayesNet {
 		attributes = new LinkedList<Node>();
 		trainExamples = new LinkedList<Example>();
 		testExamples = new LinkedList<Example>();
+		this.learnerType = learnerType;
 		mst = null;
 
 		// Read in the training set.
@@ -43,15 +45,14 @@ public class BayesNet {
 
 		// Train the network using the algorithm specified by the "type"
 		// parameter.
-		if (type.equals("nl")) {
-			learnerType = "Naive";
+		if (this.learnerType.startsWith("n")) {
 			Learners.naive(this);
-		} else if (type.equals("tl")) {
-			learnerType = "TAN";
+		} else if (this.learnerType.startsWith("t")) {
 			Learners.tan(this);
 		} else {
-			System.err.println("Please pass in an 'n' (for Naive) or a 't' "
-					+ "(for TAN) as the third parameter to the program.");
+			System.err.println("Please pass in a type that begins with 'n' "
+					+ "(for Naive) or a 't' (for TAN) as the third parameter "
+					+ "to the program.");
 			System.exit(1);
 		}
 	}
@@ -133,10 +134,10 @@ public class BayesNet {
 
 			// Then factor in the probability of each value given this class.
 			for (NodeValue thisValue : testExample.getValues()) {
-				if (learnerType.equals("Naive")) {
+				if (learnerType.startsWith("n")) {
 					probabilities[classIndex] *= thisValue
 							.getProbGivenClass(classIndex);
-				} else if (learnerType.equals("TAN")) {
+				} else if (learnerType.startsWith("t")) {
 					probabilities[classIndex] *= thisValue
 							.getProbOfClassForExample(testExample, classIndex);
 				}
@@ -173,8 +174,7 @@ public class BayesNet {
 
 	/**
 	 * Accessor method for the type of network being used.
-	 * @return Either "Naive" or "TAN" (depending upon the type of network
-	 *         chosen at runtime.
+	 * @return The type of learner passed into the driver program.
 	 */
 	public String getLearnerType() {
 		return learnerType;

@@ -1,5 +1,7 @@
 package mlai.shared;
 
+import java.util.ArrayList;
+
 import mlai.bayesian.BayesNet;
 
 /**
@@ -23,6 +25,9 @@ public class MLAI {
 	 *              1. the name of the training set,
 	 *              2. the name of the test set, and
 	 *              3. the type of learner to use. Here are the options:
+	 *                 * Enter 'n' for Naive Bayes (with no estimates)
+	 *                 * Enter 't' for Tree-Augmented Naive Bayes (with no
+	 *                   estimates)
 	 *                 * Enter 'nl' for Naive Bayes (using Laplace estimates)
 	 *                 * Enter 'tl' for Tree-Augmented Naive Bayes (using
 	 *                   Laplace estimates)
@@ -38,7 +43,13 @@ public class MLAI {
 		
 		String learnerType = args[2].toLowerCase();
 		
-		if (learnerType.equals("nl") || learnerType.equals("tl")) {
+		ArrayList<String> bayesianTypes = new ArrayList<String>(4);
+		bayesianTypes.add("n");
+		bayesianTypes.add("nl");
+		bayesianTypes.add("t");
+		bayesianTypes.add("tl");
+		
+		if (bayesianTypes.contains(learnerType)) {
 			// Create the BayesNet (this handles the reading of the training set).
 			BayesNet net = new BayesNet(args[0], learnerType);
 

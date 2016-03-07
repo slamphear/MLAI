@@ -16,14 +16,21 @@ public class Learners {
 		int numExamples = net.getTrainExamples().size();
 
 		for (NodeValue classValue : net.getClassNode().getValues()) {
+			int numerator = classValue.getNumExamples();
+			int denominator = numExamples;
+			
+			// See if Laplace estimates are in use and adjust counts
+			// accordingly.
+			if (net.getLearnerType().endsWith("l")) {
+				numerator += 1;
+				denominator += net.getClassNode().getNumValues();
+			}
+			
 			// Set the probability for each value in the class.
-			classValue
-					.setProbability((classValue.getNumExamples() + 1)
-							/ (double) (numExamples + net.getClassNode()
-									.getNumValues()));
+			classValue.setProbability(numerator / (double) denominator);
 		}
 
-		// Create a CPT for the class ndoe.
+		// Create a CPT for the class node.
 		net.getClassNode().setCPT(new CondProbTable(net, net.getClassNode()));
 
 		// Now do the same for each attribute.
@@ -31,10 +38,18 @@ public class Learners {
 
 			// Set the probability for each value.
 			for (NodeValue thisAttVal : thisAttribute.getValues()) {
+				int numerator = thisAttVal.getNumExamples();
+				int denominator = net.getNumExamples();
+				
+				// See if Laplace estimates are in use and adjust counts
+				// accordingly.
+				if (net.getLearnerType().endsWith("l")) {
+					numerator += 1;
+					denominator += thisAttribute.getNumValues();
+				}
+				
 				// Set probability for this value.
-				thisAttVal.setProbability(thisAttVal.getNumExamples()
-						/ (double) (net.getNumExamples() + thisAttribute
-								.getNumValues()));
+				thisAttVal.setProbability(numerator / (double) denominator);
 			}
 
 			// Create a new CPT for this node.
@@ -67,19 +82,27 @@ public class Learners {
 		int numExamples = net.getTrainExamples().size();
 
 		// Estimate the probability of each possible value for the class.
-		for (int classIndex = 0; classIndex < net.getClassNode().getNumValues(); classIndex++) {
-			NodeValue thisClassValue = net.getClassNode().getValueByIndex(
-					classIndex);
-			thisClassValue
-					.setProbability((thisClassValue.getNumExamples() + 1)
-							/ (double) (numExamples + net.getClassNode()
-									.getNumValues()));
+		for (int classIndex = 0; classIndex < net.getClassNode()
+				.getNumValues(); classIndex++) {
+			NodeValue thisClassValue = net.getClassNode()
+					.getValueByIndex(classIndex);
+			int numerator = thisClassValue.getNumExamples();
+			int denominator = numExamples;
+			
+			// See if Laplace estimates are in use and adjust counts
+			// accordingly.
+			if (net.getLearnerType().endsWith("l")) {
+				numerator += 1;
+				denominator += net.getClassNode().getNumValues();
+			} else {
+			}
+			
+			thisClassValue.setProbability(numerator / (double) denominator);
 
 			// Estimate P(X_i = x | Y = y) for each X_i
 			for (Node thisAttribute : net.getAttributes()) {
 				for (NodeValue thisAttributeValue : thisAttribute.getValues()) {
-					// Start count at 1 for Laplace estimates.
-					int count = 1;
+					int count = 0;
 
 					for (Example thisExample : thisAttributeValue.getExamples()) {
 						// See if the class value of this example matches the
@@ -88,12 +111,23 @@ public class Learners {
 							count++;
 						}
 					}
+					
+					numerator = count;
+					denominator = net.getNumExamples();
+					int classDenominator = thisClassValue.getNumExamples();
+					
+					// See if Laplace estimates are in use and adjust counts
+					// accordingly.
+					if (net.getLearnerType().endsWith("l")) {
+						numerator += 1;
+						denominator += thisAttribute.getNumValues();
+						classDenominator += thisAttribute.getNumValues();
+					}
 
 					// Calculate probabilities.
-					double probability = (count / (double) (net
-							.getNumExamples() + thisAttribute.getNumValues()));
-					double probabilityGivenClass = (count / (double) (thisClassValue
-							.getNumExamples() + thisAttribute.getNumValues()));
+					double probability = (numerator / (double) denominator);
+					double probabilityGivenClass = (numerator / (double)
+							classDenominator);
 
 					// Set probabilities.
 					thisAttributeValue.setProbability(probability);
