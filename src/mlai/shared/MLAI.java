@@ -62,7 +62,5 @@ public class MLAI {
 			// Print the network's performance on the test set.
 			net.printTest(args[1]);
 		}
-
-		
 	}
 }

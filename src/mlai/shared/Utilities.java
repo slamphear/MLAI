@@ -1,9 +1,12 @@
-package mlai.bayesian;
+package mlai.shared;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.Scanner;
+
+import mlai.bayesian.Example;
+import mlai.bayesian.Node;
 
 /**
  * Various utility methods used by this package.
@@ -22,16 +25,11 @@ public class Utilities {
 	 *                    This will be empty when reading a training set, but
 	 *                    populated when reading a test set.
 	 * @param examples  The empty linked list to be populated with examples
-	 *                  from this data set. 
-	 * @param testMode  This should be <code>False</code> if this data set is
-	 *                  being used for training and <code>True</code> if this
-	 *                  data set is being used for testing. When testing, the
-	 *                  attributes, class node, and relation will be assumed to
-	 *                  be populated. 
+	 *                  from this data set.
 	 */
 	public static void ReadData(String filename, String relation,
 			Node classNode, LinkedList<Node> attributes,
-			LinkedList<Example> examples, boolean testMode) {
+			LinkedList<Example> examples) {
 
 		String line;
 		int index = 0;
@@ -56,19 +54,12 @@ public class Utilities {
 				continue;
 			}
 
-			// Skip header lines if the test we're reading in is a test set.
-			String linePrefix = line.split(" ", 0)[0].toLowerCase();
-			if (testMode
-					&& (linePrefix.startsWith("@relation") || linePrefix
-							.startsWith("@attribute"))) {
-				continue;
-			}
-			// Otherwise, see if this line is a relation.
+			// See if this line is a relation.
 			else if (line.split(" ", 0)[0].toLowerCase()
 					.startsWith("@relation")) {
 				relation = line.split(" ", 0)[1].trim();
 			}
-			// Finally, see if this line is an attribute.
+			// Then, see if this line is an attribute.
 			else if (line.split(" ", 0)[0].toLowerCase().startsWith(
 					"@attribute")) {
 				// Get the attribute name

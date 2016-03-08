@@ -4,6 +4,8 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 
+import mlai.shared.Utilities;
+
 /**
  * Representation of a Bayesian Network.
  * @author Steven Lamphear
@@ -37,7 +39,7 @@ public class BayesNet {
 
 		// Read in the training set.
 		Utilities.ReadData(trainFile, relation, classNode, attributes,
-				trainExamples, false);
+				trainExamples);
 
 		// Update the class node's index so that it is immediately after the
 		// last attribute.
@@ -81,21 +83,16 @@ public class BayesNet {
 		for (NodeValue firstAttVal : firstAttribute.getValues()) {
 			for (NodeValue secondAttVal : secondAttribute.getValues()) {
 				for (int classIndex = 0; classIndex < classNode.getNumValues(); classIndex++) {
-					NodeValue classValue = classNode
-							.getValueByIndex(classIndex);
-					double probFirstGivenClass = firstAttVal
-							.getProbGivenClass(classIndex);
-					double probSecondGivenClass = secondAttVal
-							.getProbGivenClass(classIndex);
+					NodeValue classValue = classNode.getValueByIndex(classIndex);
+					double probFirstGivenClass = firstAttVal.getProbGivenClass(classIndex);
+					double probSecondGivenClass = secondAttVal.getProbGivenClass(classIndex);
 					int matches = 1; // Start counting at 1 for Laplace estimate.
 
 					// Loop over all of the examples with this class value;
-					// count the number of examples which also have these
-					// values.
+					// count the number of examples which also have these values.
 					for (Example thisExample : classValue.getExamples()) {
 						if (thisExample.getValues().contains(firstAttVal)
-								&& thisExample.getValues().contains(
-										secondAttVal)) {
+								&& thisExample.getValues().contains(secondAttVal)) {
 							matches++;
 						}
 					}
@@ -103,9 +100,8 @@ public class BayesNet {
 					double probAll = matches
 							/ (double) (getNumExamples() + laplace);
 					double probBothGivenClass = matches
-							/ ((double) classValue.getNumExamples() + (firstAttribute
-									.getNumValues() * secondAttribute
-									.getNumValues()));
+							/ ((double) classValue.getNumExamples() + (firstAttribute.getNumValues()
+									* secondAttribute.getNumValues()));
 					cmi += (probAll * Utilities.logBaseTwo(probBothGivenClass
 							/ (probFirstGivenClass * probSecondGivenClass)));
 				}
@@ -135,8 +131,7 @@ public class BayesNet {
 			// Then factor in the probability of each value given this class.
 			for (NodeValue thisValue : testExample.getValues()) {
 				if (learnerType.startsWith("n")) {
-					probabilities[classIndex] *= thisValue
-							.getProbGivenClass(classIndex);
+					probabilities[classIndex] *= thisValue.getProbGivenClass(classIndex);
 				} else if (learnerType.startsWith("t")) {
 					probabilities[classIndex] *= thisValue
 							.getProbOfClassForExample(testExample, classIndex);
@@ -232,7 +227,7 @@ public class BayesNet {
 	 */
 	public void printTest(String testFile) {
 		Utilities.ReadData(testFile, relation, classNode, attributes,
-				testExamples, true);
+				testExamples);
 		DecimalFormat decimalFormat = new DecimalFormat("#.############");
 		decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
 		int numCorrect = 0;
